@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
+        <!--title>Building blocks demo</title-->
+        <!-- Building blocks -->
+        <link rel="stylesheet" href="css/style/action_menu.css">
+        <link rel="stylesheet" href="css/style/buttons.css">
+        <link rel="stylesheet" href="css/style/confirm.css">
+        <link rel="stylesheet" href="css/style/edit_mode.css">
+        <link rel="stylesheet" href="css/style/headers.css">
+        <link rel="stylesheet" href="css/style/input_areas.css">
+        <link rel="stylesheet" href="css/style/status.css">
+        <link rel="stylesheet" href="css/style/switches.css">
+        <!--link rel="stylesheet" href="css/style_unstable/drawer.css"-->
+        <link rel="stylesheet" href="css/style_unstable/lists.css">
+        <link rel="stylesheet" href="css/style_unstable/progress_activity.css">
+        <link rel="stylesheet" href="css/style_unstable/scrolling.css">
+        <link rel="stylesheet" href="css/style_unstable/seekbars.css">
+        <link rel="stylesheet" href="css/style_unstable/tabs.css">
+        <link rel="stylesheet" href="css/style_unstable/toolbars.css">
+
+        <!-- Icons -->
+        <link rel="stylesheet" href="css/icons/styles/action_icons.css">
+        <link rel="stylesheet" href="css/icons/styles/media_icons.css">
+        <link rel="stylesheet" href="css/icons/styles/comms_icons.css">
+        <link rel="stylesheet" href="css/icons/styles/settings_icons.css">
+
+        <!-- Transitions -->
+        <link rel="stylesheet" href="css/transitions.css">
+
+        <!-- Util CSS: some extra tricks -->
+        <link rel="stylesheet" href="css/util.css">
+        <link rel="stylesheet" href="css/fonts.css">
+
+        <!-- Additional markup to make Building Blocks kind of cross browser -->
+        <link rel="stylesheet" href="css/cross_browser.css">
+        
+        <script type="text/javascript" src="js/jquery-2.0.3.js"></script>
+        <script>
+            $(document).ready(function(){
+                var items = {};
+                var last = {};
+                var actual = {};
+                url_id = "http://www.etnassoft.com/api/v1/get/?id=589&callback=?";
+                
+                $('#detalle').slideUp();
+                $('#menu').slideUp();
+                $('#search').slideUp();
+                //return;
+                function cargar_main() {
+                    $('#loading-frame').css('display', 'block');
+                    url = "http://openlibra.com/api/v1/get/?num_items=10&callback=?";
+                    $.getJSON(url, function(data){
+                        $('#loading-frame').css('display', 'none');
+                        $("#lst_newest").html("");
+                        $.each(data, function(i, item) {
+                            console.log(i , item);
+                            items['libro_' + item['ID']] = item;
+                            strHTML = '\n<li>\n';
+                            strHTML += '<a class="detalle" id="libro_' + item["ID"] + '" href="#">\n';
+                            strHTML += '<aside>\n';
+                            strHTML += '<img src="' + item["thumbnail"] + '">\n';
+                            strHTML += '<img class="thumb_language" src="img/' + item["language"] + '.png">\n';
+                            strHTML += '</aside>\n';
+                            strHTML += '<p>' + item["title"] + '</p>\n';
+                            strHTML += '<p>' + item["author"] + '</p>\n';
+                            strHTML += '</a>\n';
+                            strHTML += '</li>';
+                            $("#lst_newest").append(strHTML);
+                            $("#libro_" + item["ID"]).click(function(){
+                                actual['titulo'] = items[this.id]['title'];
+                                actual['url'] = items[this.id]['url_details'];
+                                var content = (items[this.id]['content'] != null ? items[this.id]['content'] : items[this.id]['content_short']);
+                                if (content == null) content = "No hay una descripción disponible";
+                                //console.log(items);
+                                //console.log(items[this.id]);
+                                $('#detalle_titulo').html(items[this.id]['title']);
+                                $('#detalle_img').prop('src', items[this.id]['thumbnail']);
+                                $('#detalle_autor').html(items[this.id]['author']);
+                                $('#detalle_publi').html(items[this.id]['publisher_date']);
+                                $('#detalle_edit').html(items[this.id]['publisher']);
+                                $('#detalle_paginas').html(items[this.id]['pages']);
+                                $('#detalle_idioma').prop('src', 'img/' + items[this.id]['language'] + ".png");
+                                $('#detalle_desc').html(content.replace('&Atilde;&sup3;', 'ó', 'gi').replace('&Atilde;&shy;','í', 'gi').replace('&Atilde;&iexcl;', 'á', 'gi').replace('&Atilde;&copy;', 'é', 'gi').replace('&Atilde;&plusmn;', 'ñ', 'gi').replace('&Atilde;&ordm;', 'ú', 'gi').replace('&lt;', '<', 'gi').replace('&gt;', '>', 'gi').replace('&Acirc;&laquo;','&laquo;', 'gi').replace('&Acirc;&raquo;', '&raquo;', 'gi').replace('&quot;', '"', 'gi').replace('<a', '<a target="_blank"', 'gi'));
+                                $('#detalle_pdf').prop('href', items[this.id]['url_read_online']);
+                                $('#detalle_descarga').prop('href', items[this.id]['url_download']);
+                                $('#detalle').slideDown();
+                                $('#inicio').slideUp();
+                                last['detalle'] = 'inicio';
+                            });
+                        });
+                    });
+                }
+                function cargar_busqueda(busqueda) {
+                    $('#loading-frame').css('display', 'block');
+                    url = 'http://openlibra.com/api/v1/get/?keyword=' + busqueda.replace(' ', '+') + '&callback=?';
+                    //console.log(url);
+                    $.getJSON(url, function(data){
+                        //console.log(data.length);
+                        $("#lst_search").html('');
+                        $('#loading-frame').css('display', 'none');
+                        if (data.length == 0) {
+                            $("#lst_search").append("<li>La Búsqueda no produjo resultados</li>");
+                        }
+                        $.each(data, function(i, item) {
+                            //console.log(i , item);
+                            items['search_' + item['ID']] = item;
+                            strHTML = '\n<li>\n';
+                            //strHTML += '<aside class="pack-end"><img src="img/' + item['language'] + '.png"></aside>\n';
+                            strHTML += '<a class="detalle" id="search_' + item["ID"] + '" href="#">\n';
+                            strHTML += '<aside>\n';
+                            strHTML += '<img src="' + item["thumbnail"] + '">\n';
+                            strHTML += '<img class="thumb_language" src="img/' + item["language"] + '.png">\n';
+                            strHTML += '</aside>\n';
+                            strHTML += '<p>' + item["title"] + '</p>\n';
+                            strHTML += '<p>' + item["author"] + '</p>\n';
+                            strHTML += '</a>\n';
+                            strHTML += '</li>';
+                            $("#lst_search").append(strHTML);
+                            $("#search_" + item["ID"]).click(function(){
+                                //console.log(items);
+                                //console.log(items[this.id]);
+                                var content = (items[this.id]['content'] != null ? items[this.id]['content'] : items[this.id]['content_short']);
+                                if (content == null) content = "No hay una descripción disponible";
+                                $('#detalle_titulo').html(items[this.id]['title']);
+                                $('#detalle_img').prop('src', items[this.id]['thumbnail']);
+                                $('#detalle_autor').html(items[this.id]['author']);
+                                $('#detalle_publi').html(items[this.id]['publisher_date']);
+                                $('#detalle_edit').html(items[this.id]['publisher']);
+                                $('#detalle_paginas').html(items[this.id]['pages']);
+                                $('#detalle_idioma').prop('src', 'img/' + items[this.id]['language'] + ".png");
+                                $('#detalle_desc').html(content.replace('&Atilde;&sup3;', 'ó', 'gi').replace('&Atilde;&shy;','í', 'gi').replace('&Atilde;&iexcl;', 'á', 'gi').replace('&Atilde;&copy;', 'é', 'gi').replace('&Atilde;&plusmn;', 'ñ', 'gi').replace('&Atilde;&ordm;', 'ú', 'gi').replace('&lt;', '<', 'gi').replace('&gt;', '>', 'gi').replace('&Acirc;&laquo;','&laquo;', 'gi').replace('&Acirc;&raquo;', '&raquo;', 'gi').replace('&quot;', '"', 'gi').replace('<a', '<a target="_blank"', 'gi'));
+                                $('#detalle_pdf').prop('href', items[this.id]['url_read_online']);
+                                $('#detalle_descarga').prop('href', items[this.id]['url_download']);
+                                $('#detalle').slideDown();
+                                $('#inicio').slideUp();
+                                last['detalle'] = 'search';
+                            });
+                        });
+                    });
+                }
+                
+                function compartir(red, texto, url) {
+                    var r = {};
+                    r['twitter'] = 'https://twitter.com/intent/tweet?text=' + texto + '&url=' + url + '&via=EtnasSoft';
+                    window.open(r[red]);
+                }
+                $('#detalle_twitter').click(function(){
+                    compartir('twitter', actual['titulo'], actual['url']);
+                });
+                $('.go_back').click(function(){
+                    //console.log($(this).parent().parent().prop('id'));
+                    $('#' + last[$(this).parent().parent().prop('id')]).slideDown();
+                    $(this).parent().parent().slideUp();
+                });
+                $('#btn_refrescar').click(function(){
+                    cargar_main();
+                });
+                $('.go_menu').click(function(){
+                    last['menu'] = $(this).parent().parent().parent().prop('id');
+                    //console.log(last);
+                    $('#menu').slideDown();
+                    $(this).parent().parent().parent().slideUp();
+                });
+                $('.go_search').click(function(){
+                    last['search'] = $(this).parent().parent().parent().prop('id');
+                    //console.log(last);
+                    $('#search').slideDown();
+                    $(this).parent().parent().parent().slideUp();
+                });
+                $("#txtBusqueda").keypress(function(e) {
+                    if(e.which == 13) {
+                        cargar_busqueda($("#txtBusqueda").val());
+                    }
+                });
+
+                cargar_main();
+            });
+        </script>
+        <style>
+            .detalle {
+                font-size: 12px;
+                margin: 0;
+                padding: 0;
+            }
+            li {
+                font-size: 12px;
+            }
+            #loading-frame {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index:100;
+                background-color: rgba(0,0,0,0.5);
+                display: none;
+            }
+            #loading {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index:100;
+                background: transparent url('img/loading.png') center no-repeat;
+                animation: 0.9s rotate infinite steps(30);
+            }
+            .content {
+                background: #fff url('img/noisy_blue.jpg') !important;
+            }
+            
+            .thumb_language {
+                position: absolute !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                z-index: 300 !important;
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+/* Animations */
+@keyframes rotate {
+  from { transform: rotate(1deg); }
+  to   { transform: rotate(360deg); }
+}
+
+        </style>
+    </head>
+    <body>
+        <!-- Ventana Principal -->
+        <section role="region" class="skin-organic" id="inicio">
+            <header class="fixed">
+                <menu type="toolbar">
+                    <a class="go_search" href="#"><span class="icon icon-search">search</span></a>
+                    <a class="go_menu" href="#"><span class="icon icon-menu">menu</span></a>
+                </menu>
+                <h1>OPENLIBRA</h1>
+            </header>
+            <article class="content scrollable header">
+                <div data-type="list">
+                    <a id="btn_refrescar" role="button" class="icon icon-refresh" href="#">Refrescar</a>
+                    <ul id="lst_newest">
+                    </ul>
+                </div>
+            </article>
+        </section>
+        <!-- Ventana de detalle del libro -->
+        <section role="region" class="skin-organic" id="detalle">
+            <header class="fixed">
+                <menu type="toolbar">
+                    <a class="go_search" href="#"><span class="icon icon-search">search</span></a>
+                    <!--a class="go_menu" href="#"><span class="icon icon-menu">menu</span></a-->
+                </menu>
+                <a class="go_back" href="#"><span class="icon icon-back">back</span></a>
+                <h1>Detalle del Libro</h1>
+            </header>
+            <article class="content scrollable header">
+                <p id="detalle_titulo"></span></p>
+                <img id="detalle_img" style="float:left; margin:5px;"/>
+                <p class="detalle"><strong>Autor(es): </strong><span id="detalle_autor"></span></p>
+                <p class="detalle"><strong>Publicación: </strong><span id="detalle_publi"></span></p>
+                <p class="detalle"><strong>Editorial: </strong><span id="detalle_edit"></span></p>
+                <p class="detalle"><strong>Núm. Páginas: </strong><span id="detalle_paginas"></span></p>
+                <p class="detalle"><img id="detalle_idioma" src="" width="32" height="32" /></p>
+                <p style="clear:both;"></p>
+                <a id="detalle_pdf" href="#"><img src="img/pdf.png" /></a>
+                <a id="detalle_descarga" href="#"><img src="img/download.png" /></a>
+                <a id="detalle_twitter" href="#"><img src="img/twitter.png" /></a>
+                <p class="detalle" id="detalle_desc"></p>
+            </article>
+        </section>
+        <!-- Ventana de Menú -->
+        <section role="region" class="skin-organic" id="menu">
+            <header class="fixed">
+                <a class="go_back" href="#"><span class="icon icon-back">back</span></a>
+                <h1>Acerca de...</h1>
+            </header>
+            <article style="text-align:center" class="content scrollable header">
+                <p>Buscador de libros libres</p>
+                <a target="_blank" href="http://openlibra.com/"><img src="img/openlibra.png" /></a>
+                <p>Basado en la API pública</p>
+                <a target="_blank" href="http://www.etnassoft.com/api-documentacion/"><img src="img/liapi.png" /></a>
+            </article>
+        </section>
+        <!-- Ventana de Búsqueda -->
+        <section role="region" class="skin-organic" id="search">
+            <header class="fixed">
+                <a class="go_back" href="#"><span class="icon icon-back">back</span></a>
+                <menu type="toolbar">
+                    <!--a class="go_menu" href="#"><span class="icon icon-menu">menu</span></a-->
+                </menu>
+                <form action="#">
+                    <input id="txtBusqueda" type="text" placeholder="Búsqueda" required="required">
+                    <button type="reset">Remove text</button>
+                </form>
+            </header>
+            <article class="content scrollable header">
+                <div data-type="list">
+                    <ul id="lst_search">
+                    </ul>
+                </div>
+            </article>
+        </section>
+        <div id="loading-frame"><div id="loading"></div></div>
+    </body>
+</html>
+

@@ -1,0 +1,14 @@
+{
+  "name": "Openlibra",
+  "description": "Buscador de libros libres de Openlibra",
+  "launch_path": "/main.html",
+  "developer": {
+    "name": "William Cabrera",
+    "url": "http://willicab.com.ve"
+  },
+  "default_locale": "es",
+  "icons": {
+    "128": "/img/icon-128.png",
+    "60": "/img/icon-60.png"
+  }
+}
